@@ -6,8 +6,7 @@ type Query {
 }
 
 type Token {
-      token: String!
-      user: User!
+      token: String
     }
 type Product {
   id: ID!,
@@ -44,7 +43,7 @@ input UserInput {
 
 type Mutation {
       create(body: UserInput): User!
-      login(username: String, password: String): Token!
+      login(email: String!, password: String!): Token!
   }
 
   enum Role {

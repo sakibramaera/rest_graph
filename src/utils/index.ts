@@ -1,8 +1,8 @@
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
-const jwtSecret = "your-secret-key";
+export const jwtSecret = "your-secret-key";
 // Function to send OTP via email
 export async function sendOTPByEmail(
   email: string,
@@ -49,12 +49,12 @@ export function generateOTP(): string {
   return otp;
 }
 // password checking
-// export async function comparePassword(
-//   password: string,
-//   hashedPassword: string
-// ): Promise<boolean> {
-//   return bcrypt.compareSync(password, hashedPassword);
-// }
+export function comparePassword(
+  password: string,
+  hashedPassword: string
+): boolean {
+  return bcrypt.compareSync(password, hashedPassword);
+}
 //   generate token for login
 export function generateToken(userId: string): string {
   return jwt.sign({ userId }, jwtSecret, { expiresIn: "1h" });

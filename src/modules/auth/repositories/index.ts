@@ -1,4 +1,3 @@
-
 import { Prisma, type User } from "@prisma/client"
 import { prisma } from "../../../config"
 import { GraphQLResolveInfo } from "graphql"
@@ -21,7 +20,7 @@ type UserExtraParams = {
 
 export const FindOne = async ({ where, includes, info }: UserExtraParams): Promise<User | null> => {
     try {
-        
+
         const select = info ? infoExtractForGraphql(info) : []
         const isProduct = select.includes("posts")
         const isCart = select.includes("carts")

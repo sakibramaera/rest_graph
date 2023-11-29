@@ -1,5 +1,6 @@
-import { GraphQLResolveInfo } from "graphql"
+import { GraphQLError, GraphQLResolveInfo } from "graphql"
 import { FindOne, FindMany, Create } from "../../repositories"
+import { comparePassword, generateToken } from "../../../../utils";
 
 
 // const EMAIL_ADDRESS_REGEX =
@@ -39,8 +40,16 @@ import { FindOne, FindMany, Create } from "../../repositories"
 
 export const authResolver = {
     Query: {
-        users: (_: any, __: any, ___: any, info: GraphQLResolveInfo) => {
-
+        users: (_: any, __: any, { role }: any, info: GraphQLResolveInfo) => {
+            // Check if the authenticated user is an admin
+            if (role !== "ADMIN") {
+                throw new GraphQLError('Forbidden - Admin access required', {
+                    extensions: {
+                        code: 'UNAUTHENTICATED',
+                        http: { status: 403 },
+                    }
+                });
+            }
             return FindMany({ info })
         },
         userById: (_: any, args: any, __: any, info: GraphQLResolveInfo) => {
@@ -52,7 +61,44 @@ export const authResolver = {
         create: (_: any, agrs: any, __: any, ___: any) => {
             return Create(agrs.body)
         },
-        login: (_: any, agrs: any, __: any, ___: any) => {
+        login: async (_: any, { email, password }: any, __: any, info: GraphQLResolveInfo) => {
+
+            try {
+                // Check if the email is already registered
+                const user = await FindOne({
+                    where:
+                    {
+                        email: email
+                    },
+                    info
+                });
+
+                if (!user) {
+                    throw new GraphQLError('You have no account for this email', {
+                        extensions: {
+                            code: 'INVALID EMAIL',
+                            http: { status: 401 },
+                        }
+                    });
+                }
+                const isPassword = comparePassword(password, user.password)
+                if (!isPassword) {
+                    throw new GraphQLError('Password Incorrect', {
+                        extensions: {
+                            code: 'PASSWORD WRONG',
+                            http: { status: 401 },
+                        }
+                    });
+                }
+                const token = generateToken(user.id);
+                return {
+                    token: token
+                }
+
+            } catch (error) {
+                return error;
+            }
+
 
         }
     }

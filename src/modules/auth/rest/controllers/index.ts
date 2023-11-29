@@ -1,10 +1,12 @@
-
+import bcrypt from "bcryptjs";
 import type { Request, Response, NextFunction } from "express"
 import { asyncMiddleware } from "../../../../middlewares/asyncMiddleware"
 import redis from "../../../../config/database/redis"
 import { FindOne, FindMany, Create } from "../../repositories"
 
-import { generateToken } from "../../../../utils"
+import { comparePassword, generateToken } from "../../../../utils"
+import { password } from "bun";
+import { Prisma } from "@prisma/client";
 
 
 export const getUserById = asyncMiddleware(async (req: Request, res: Response, _next: NextFunction) => {
@@ -29,13 +31,22 @@ export const getUserById = asyncMiddleware(async (req: Request, res: Response, _
     }
 })
 
-export const getAllUser = asyncMiddleware(async (_req: Request, res: Response, _next: NextFunction) => {
+export const getAllUser = asyncMiddleware(async (req: Request, res: Response, _next: NextFunction) => {
     try {
-        const redisData = await redis.get(`all`)
+
+        // Check if the authenticated user is an admin
+        if (req.body.role !== "ADMIN") {
+            return res.status(403).json({ success: false, message: 'Forbidden - Admin access required', data: [] });
+        }
+
+        // const redisData = await redis.get(`all`)
+        const redisData = "[]"
 
         if (JSON.parse(redisData as string).length <= 0) {
-            const data = await FindMany({ includes: { product: true, cart: true } })
-            data && data.length > 0 ? redis.set(`all`, JSON.stringify(data)) : console.log("not set empty data onto redis");
+            const data = await FindMany({
+                includes: { product: true, cart: true }
+            })
+            // data && data.length > 0 ? redis.set(`all`, JSON.stringify(data)) : console.log("not set empty data onto redis");
             return res.status(200).json({
                 success: true,
                 message: "fetched successfully from db",
@@ -55,17 +66,21 @@ export const getAllUser = asyncMiddleware(async (_req: Request, res: Response, _
 
 export const signup = asyncMiddleware(async (req: Request, res: Response, _next: NextFunction) => {
 
-    const { email } = req.body;
+    const { email, password } = req.body;
     // Check if the email is already registered
     const existingUser = await FindOne({ where: { email } });
     if (existingUser) {
         return res.status(400).json({ error: "Email already in use" });
     } else {
         try {
-            const data = await Create(req.body);
+            const salt = bcrypt.genSaltSync(10)
+            const passwordHash = bcrypt.hashSync(password, salt)
+            const data = await Create({ ...req.body, password: passwordHash });
+            const token = generateToken(data.id);
             return res.status(200).json({
                 success: true,
                 message: "Successfully Account Created",
+                token: token,
                 data: data,
             });
         } catch (error) {
@@ -81,9 +96,9 @@ export const login = asyncMiddleware(async (req: Request, res: Response, next: N
         // Check if the email is already registered
         const user = await FindOne({
             where:
-                {
-                    email: req.body.email as string
-                }
+            {
+                email: req.body.email as string
+            }
         });
 
         if (!user) {
@@ -93,13 +108,20 @@ export const login = asyncMiddleware(async (req: Request, res: Response, next: N
                 data: [],
             });
         }
+        const isPassword = comparePassword(req.body.password, user.password)
+        if (!isPassword) {
+            return res.status(401).json({
+                success: false,
+                message: "Password Incorrect",
+                token: ""
+            });
+        }
         const token = generateToken(user.id);
         return res.status(200).json({
             success: true,
             message: "Login successfully",
             token: token,
         });
-
 
     } catch (error) {
         return error;

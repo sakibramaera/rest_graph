@@ -7,6 +7,7 @@ import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer'
 import cors from 'cors';
 import express from 'express';
+import { IContext, authGraphMiddleware } from './middlewares/authMiddleware';
 // import {
 //   ApolloServerPluginLandingPageProductionDefault,
 //   ApolloServerPluginLandingPageLocalDefault
@@ -43,11 +44,8 @@ class Server {
       // Init Modules
       initModules.initRest(this.app)
       const { typeDefs, resolvers } = initModules.initGraph()
-      interface MyContext {
-        token?: string;
-      }
 
-      const server = new ApolloServer<MyContext>({
+      const server = new ApolloServer<IContext>({
         typeDefs,
         resolvers,
         // schemaDirectives: directives,
@@ -108,9 +106,13 @@ class Server {
         express.json(),
         // expressMiddleware accepts the same arguments:
         // an Apollo Server instance and optional configuration options
-        expressMiddleware(server, {
-          context: async ({ req }) => ({ token: req.headers.token }),
-        }),);
+        expressMiddleware(server,
+          {
+            context: async ({ req, res }) => (
+              await authGraphMiddleware(req, res)
+            )
+          }
+        ),);
 
       // Health Route
       // this.app.route('/api/v1/health').get((_req: Request, res: Response) => {
