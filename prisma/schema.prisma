@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Author: Jaali.dev
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// User Model Start
+
+model User {
+    id            String   @id @default(uuid())
+    email         String   @unique
+    password      String
+    userName      String   @unique
+    fullName      String
+    otp           String?
+    isOTPVerified Boolean? @default(false)
+    profileImage  String?
+    role          Role     @default(USER)
+
+    // relationship model
+    products  Product[]
+    carts     Cart[]
+    createdAt DateTime  @default(now()) @map("created_at")
+    updatedAt DateTime  @updatedAt @map("update_at")
+
+    @@map("users")
+}
+
+model Product {
+    id       String @id @default(uuid())
+    name     String
+    price    String
+    quantity String
+    user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId   String
+    Cart      Cart?    @relation(fields: [cartId], references: [id])
+    cartId    String?
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("update_at")
+
+    @@map("products")
+}
+
+model Cart {
+    id       String    @id @default(uuid())
+    name     String
+    user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId   String
+    products Product[]
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("update_at")
+
+    @@map("carts")
+}
+
+// // ---------------ENUM SECTION---------------
+
+// // user Role:
+enum Role {
+    USER
+    ADMIN
+}
