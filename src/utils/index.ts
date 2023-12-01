@@ -14,7 +14,7 @@ export async function sendOTPByEmail(
       service: "gmail", // e.g., 'gmail'
       auth: {
         user: "sakibansari1115@gmail.com", // your email
-        pass: "Sakib@1240", // your email password
+        pass: "raxvyabhjknxhb", // your email password
       },
     });
 
