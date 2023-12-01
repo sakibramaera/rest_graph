@@ -1,6 +1,7 @@
 import { GraphQLError, GraphQLResolveInfo } from "graphql"
 import { FindOne, FindMany, Create } from "../../repositories"
 import { comparePassword, generateToken } from "../../../../utils";
+import bcrypt from "bcryptjs";
 
 
 // const EMAIL_ADDRESS_REGEX =
@@ -58,8 +59,29 @@ export const authResolver = {
 
     },
     Mutation: {
-        create: (_: any, agrs: any, __: any, ___: any) => {
-            return Create(agrs.body)
+        create: async (_: any, args: any, __: any, ___: any) => {
+            const { email, password } = args.body
+            try {
+                const existingUser = await FindOne({ where: { email } });
+                if (existingUser) {
+                    throw new GraphQLError('Email already in use', {
+                        extensions: {
+                            code: 'INVALID EMAIL',
+                            http: { status: 401 },
+                        }
+                    })
+                }
+                const salt = bcrypt.genSaltSync(10)
+                const passwordHash = bcrypt.hashSync(password, salt)
+                const data = await Create({ ...args.body, password: passwordHash });
+                const token = generateToken(data.id);
+                return {
+                    token: token,
+                    data: data
+                }
+            } catch (error) {
+
+            }
         },
         login: async (_: any, { email, password }: any, __: any, info: GraphQLResolveInfo) => {
 

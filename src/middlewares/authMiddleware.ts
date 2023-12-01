@@ -3,10 +3,12 @@ import jwt from "jsonwebtoken";
 import { jwtSecret } from "../utils";
 import { FindOne } from "../modules/auth/repositories";
 import { GraphQLError } from "graphql";
+import { ContextFunction } from "@apollo/server";
+import { Prisma, Role } from "@prisma/client";
 
 export interface IContext {
     userId?: string
-    role?: string
+    role?: Role
 
 }
 
@@ -49,11 +51,11 @@ export const authRestMiddleware = async (
 }
 
 
-export const authGraphMiddleware = async (req: Request, _res: Response): Promise<IContext> => {
+export const authGraphMiddleware = async ({ req }: { req: Request, res: Response }): Promise<any> => {
     const token = req.header("Authorization")?.startsWith("Bearer ")
         ? req.header("Authorization")!.replace("Bearer ", "")
-        : null;
-    if (!token) {
+        : "";
+    if (!token && !req.headers) {
         throw new GraphQLError('Unauthorized - Token missing', {
             extensions: {
                 code: 'UNAUTHENTICATED',
@@ -62,23 +64,28 @@ export const authGraphMiddleware = async (req: Request, _res: Response): Promise
         });
     }
     try {
-        const decoded = jwt.verify(token, jwtSecret) as { userId: string }; // Adjust the token payload structure
-        const user = await FindOne({
-            where: { id: decoded.userId },
-        });
+        if (token) {
+            console.log(token);
 
-        if (!user) {
-            throw new GraphQLError('Forbidden - Invalid token', {
-                extensions: {
-                    code: 'UNAUTHENTICATED',
-                    http: { status: 401 },
-                }
-            })
+            const decoded = jwt.verify(token, jwtSecret) as { userId: string }; // Adjust the token payload structure
+            const user = await FindOne({
+                where: { id: decoded.userId },
+            });
+
+            if (!user) {
+                throw new GraphQLError('Forbidden - Invalid user token', {
+                    extensions: {
+                        code: 'UNAUTHENTICATED',
+                        http: { status: 401 },
+                    }
+                })
+            }
+            return {
+                userId: decoded.userId,
+                role: user.role
+            }
         }
-        return {
-            userId: decoded.userId,
-            role: user.role
-        }
+
 
     } catch (error: any) {
         if (error.name === 'JsonWebTokenError') {
@@ -103,6 +110,7 @@ export const authGraphMiddleware = async (req: Request, _res: Response): Promise
                 }
             })
         }
+
     }
 
 }

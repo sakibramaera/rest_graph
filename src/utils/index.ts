@@ -57,5 +57,5 @@ export function comparePassword(
 }
 //   generate token for login
 export function generateToken(userId: string): string {
-  return jwt.sign({ userId }, jwtSecret, { expiresIn: "1h" });
+  return jwt.sign({ userId }, jwtSecret, { expiresIn: "1d" });
 }

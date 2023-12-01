@@ -41,8 +41,13 @@ input UserInput {
     password: String!
   }
 
+  type CreateResponse {
+    token: String!
+    data: User!
+  }
+
 type Mutation {
-      create(body: UserInput): User!
+      create(body: UserInput): CreateResponse!
       login(email: String!, password: String!): Token!
   }
 

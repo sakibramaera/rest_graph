@@ -48,6 +48,7 @@ class Server {
       const server = new ApolloServer<IContext>({
         typeDefs,
         resolvers,
+        introspection: process.env.NODE_ENV !== 'production',
         // schemaDirectives: directives,
         // context: ({ req }) => {
         //   let user = {};
@@ -106,12 +107,9 @@ class Server {
         express.json(),
         // expressMiddleware accepts the same arguments:
         // an Apollo Server instance and optional configuration options
-        expressMiddleware(server,
-          {
-            context: async ({ req, res }) => (
-              await authGraphMiddleware(req, res)
-            )
-          }
+        expressMiddleware(server, {
+          context: authGraphMiddleware
+        }
         ),);
 
       // Health Route
