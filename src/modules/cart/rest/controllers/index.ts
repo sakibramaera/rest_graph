@@ -18,7 +18,7 @@ export const getUserById = asyncMiddleware(async (req: Request, res: Response, _
         if (redisData === null) {
             console.log("set redis");
 
-            const data = await FindOne({ where: { id: req.query.id as string }, includes: { product: true, cart: true } })
+            const data = await FindOne({ where: { id: req.query.id as string }, includes: { product: true } })
             redis.set(`userId:${req.query.id}`, JSON.stringify(data))
             return res.status(200).json({ message: "lol", data: data })
         }
@@ -45,7 +45,7 @@ export const getAllUser = asyncMiddleware(async (req: Request, res: Response, _n
 
         if (JSON.parse(redisData as string).length <= 0) {
             const data = await FindMany({
-                includes: { product: true, cart: true }
+                includes: { product: true }
             })
             // data && data.length > 0 ? redis.set(`all`, JSON.stringify(data)) : console.log("not set empty data onto redis");
             return res.status(200).json({
@@ -65,7 +65,7 @@ export const getAllUser = asyncMiddleware(async (req: Request, res: Response, _n
 })
 
 
-export const signup = asyncMiddleware(async (req: Request, res: Response, _next: NextFunction) => {
+export const createCart = asyncMiddleware(async (req: Request, res: Response, _next: NextFunction) => {
 
     const { email, password } = req.body;
     // Check if the email is already registered
@@ -96,43 +96,6 @@ export const signup = asyncMiddleware(async (req: Request, res: Response, _next:
     }
 })
 
-export const login = asyncMiddleware(async (req: Request, res: Response, next: NextFunction) => {
 
-    try {
-        // Check if the email is already registered
-        const user = await FindOne({
-            where:
-            {
-                email: req.body.email as string
-            }
-        });
-
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: "You have no account for this email",
-                data: [],
-            });
-        }
-        const isPassword = comparePassword(req.body.password, user.password)
-        if (!isPassword) {
-            return res.status(401).json({
-                success: false,
-                message: "Password Incorrect",
-                token: ""
-            });
-        }
-        const token = generateToken(user.id);
-        return res.status(200).json({
-            success: true,
-            message: "Login successfully",
-            token: token,
-        });
-
-    } catch (error) {
-        return error;
-    }
-
-})
 
 

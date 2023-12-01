@@ -1,21 +1,24 @@
 
 export const authTypeDefs = `#graphql
 type Query {
-    users: [User!]!
-    userById(id: ID!): User!
+    carts: [Cart!]!
+    cartById(id: ID!): Cart!
 }
 
-type Token {
-      token: String
-    }
+
 type Product {
   id: ID!,
   name: String!
+  price: String!
+  quantity:String!
 }
 
 type Cart {
   id: ID!,
   name: String!
+  products: [Product]
+  createdAt: String
+  updatedAt: String
 }
 type User {
       id: ID!
@@ -28,13 +31,12 @@ type User {
       profileImage: String
       role: Role!
       products: [Product]
-      carts: [Cart]
       createdAt: String
       updatedAt: String
   }
 
  
-input UserInput {
+input CartInput {
     email: String!,
     userName: String!,
     fullName: String!, 
@@ -43,13 +45,12 @@ input UserInput {
   }
 
   type CreateResponse {
-    token: String!
-    data: User!
+    data: Cart!
   }
 
 type Mutation {
-      create(body: UserInput): CreateResponse!
-      login(email: String!, password: String!): Token!
+      create(body: CartInput): CreateResponse!
+     
   }
 
   enum Role {

@@ -1,4 +1,4 @@
-import { Prisma, type User } from "@prisma/client"
+import { Prisma, Product, type User } from "@prisma/client"
 import { prisma } from "../../../config"
 import { GraphQLResolveInfo } from "graphql"
 import { infoExtractForGraphql } from "../../../shared/infoExtractForGraphql"
@@ -7,8 +7,8 @@ import { infoExtractForGraphql } from "../../../shared/infoExtractForGraphql"
 type UserExtraParams = {
     where?: any,
     includes?: {
-        product: boolean,
-        cart: boolean
+        cart: boolean,
+        // cart: boolean
     },
     info?: GraphQLResolveInfo,
     orderBy?: {
@@ -19,17 +19,16 @@ type UserExtraParams = {
     skip?: any
 }
 
-export const FindOne = async ({ where, includes, info }: UserExtraParams): Promise<User | null> => {
+export const FindOne = async ({ where, includes, info }: UserExtraParams): Promise<Product | null> => {
     try {
 
         const select = info ? infoExtractForGraphql(info) : []
-        const isProduct = select.includes("posts")
         const isCart = select.includes("carts")
-        return await prisma.user.findUnique({
+        // const isCart = select.includes("carts")
+        return await prisma.product.findUnique({
             where: where ? where as any : undefined,
             include: {
-                products: isProduct || includes?.product as boolean,
-                carts: isCart || includes?.cart as boolean,
+                Cart: isCart || includes?.cart as boolean,
             },
         })
     } catch (e) {
@@ -45,18 +44,18 @@ export const FindOne = async ({ where, includes, info }: UserExtraParams): Promi
     }
 }
 
-export const FindMany = async ({ where, includes, info, orderBy, skip, offset, limit }: UserExtraParams): Promise<User[]> => {
+export const FindMany = async ({ where, includes, info, orderBy, skip, offset, limit }: UserExtraParams): Promise<Product[]> => {
     try {
         const select = info ? infoExtractForGraphql(info) : []
-        const isProduct = select.includes("posts")
         const isCart = select.includes("carts")
-        return await prisma.user.findMany({
+        // const isCart = select.includes("carts")
+        return await prisma.product.findMany({
             skip: skip || offset ? skip + offset : 0,
             take: limit ? limit : 10,
             where: where ? where : undefined,
             include: {
-                products: isProduct || includes?.product,
-                carts: isCart || includes?.cart,
+                Cart: isCart || includes?.cart,
+                // carts: isCart || includes?.cart,
             },
             orderBy: {
                 ...orderBy,
@@ -77,9 +76,9 @@ export const FindMany = async ({ where, includes, info, orderBy, skip, offset, l
     }
 }
 
-export const Create = async (body: any): Promise<User> => {
+export const Create = async (body: any): Promise<Product> => {
 
-    return await prisma.user.create({
+    return await prisma.product.create({
         data: {
             ...body
         }
@@ -88,9 +87,9 @@ export const Create = async (body: any): Promise<User> => {
 }
 
 
-export const Update = async (where: any, body: any): Promise<User> => {
+export const Update = async (where: any, body: any): Promise<Product> => {
 
-    return await prisma.user.update({
+    return await prisma.product.update({
         where: where,
         data: {
             ...body

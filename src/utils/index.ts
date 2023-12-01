@@ -11,17 +11,17 @@ export async function sendOTPByEmail(
   try {
     // Create a transporter with your email service provider's SMTP details
     const transporter = nodemailer.createTransport({
-      service: "cpnsingh8181@gmail.com", // e.g., 'gmail'
+      service: "gmail", // e.g., 'gmail'
       auth: {
-        user: "cpnsingh8181@gmail.com", // your email
-        pass: "dggiqhlfyflvfkkb", // your email password
+        user: "sakibansari1115@gmail.com", // your email
+        pass: "Sakib@1240", // your email password
       },
     });
 
     // Define email content
     const mailOptions = {
-      from: "cpnsingh8181@gmail.com",
-      to: email,
+      from: "sakibansari1115@gmail.com",
+      to: "sakib.it@ramaera.in",
       subject: "OTP Verification",
       text: `Your OTP for verification is: ${otp}`,
     };
