@@ -4,6 +4,7 @@ import { GraphQLResolveInfo } from "graphql"
 import { infoExtractForGraphql } from "../../../shared/infoExtractForGraphql"
 
 
+
 type UserExtraParams = {
     where?: any,
     includes?: {
@@ -44,6 +45,7 @@ export const FindOne = async ({ where, includes, info }: UserExtraParams): Promi
     }
 }
 
+
 export const FindMany = async ({ where, includes, info, orderBy, skip, offset, limit }: UserExtraParams): Promise<Product[]> => {
     try {
         const select = info ? infoExtractForGraphql(info) : []
@@ -77,6 +79,7 @@ export const FindMany = async ({ where, includes, info, orderBy, skip, offset, l
 }
 
 export const Create = async (body: any): Promise<Product> => {
+    // console.log("=========>", body);
 
     return await prisma.product.create({
         data: {

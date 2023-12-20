@@ -1,4 +1,4 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Request as ExpressRequest, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { jwtSecret } from "../utils";
 import { FindOne } from "../modules/auth/repositories";
@@ -10,6 +10,13 @@ export interface IContext {
     userId?: string
     role?: Role
 
+}
+
+
+// Define a custom type that extends the default Express Request type
+export interface Request extends ExpressRequest {
+    userId?: string; // Define the userId property as optional
+    role?: Role
 }
 
 export const authRestMiddleware = async (
@@ -35,8 +42,8 @@ export const authRestMiddleware = async (
         }
 
         // Attach the user ID to the request object for later use in route handlers
-        req.body.userId = decoded.userId
-        req.body.role = user.role
+        req.userId = decoded.userId
+        req.role = user.role
 
         return next(); // Continue to the next middleware or route handler
     } catch (error: any) {
@@ -55,6 +62,7 @@ export const authGraphMiddleware = async ({ req }: { req: Request, res: Response
     const token = req.header("Authorization")?.startsWith("Bearer ")
         ? req.header("Authorization")!.replace("Bearer ", "")
         : "";
+
     if (!token && !req.headers) {
         throw new GraphQLError('Unauthorized - Token missing', {
             extensions: {
@@ -65,8 +73,7 @@ export const authGraphMiddleware = async ({ req }: { req: Request, res: Response
     }
     try {
         if (token) {
-            console.log(token);
-
+            // console.log(token);
             const decoded = jwt.verify(token, jwtSecret) as { userId: string }; // Adjust the token payload structure
             const user = await FindOne({
                 where: { id: decoded.userId },

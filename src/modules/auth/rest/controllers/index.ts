@@ -1,8 +1,9 @@
 import bcrypt from "bcryptjs";
-import type { Request, Response, NextFunction } from "express"
+import type { Response, NextFunction } from "express"
 import { asyncMiddleware } from "../../../../middlewares/asyncMiddleware"
 import redis from "../../../../config/database/redis"
 import { FindOne, FindMany, Create } from "../../repositories"
+import { Request } from '../../../../middlewares/authMiddleware'
 
 import { comparePassword, generateOTP, generateToken, sendOTPByEmail } from "../../../../utils"
 import { password } from "bun";
@@ -13,18 +14,18 @@ import { prisma } from "../../../../config";
 export const getUserById = asyncMiddleware(async (req: Request, res: Response, _next: NextFunction) => {
     try {
         const redisData = await redis.get(`userId:${req.query.id}`)
-        console.log(redisData);
+        console.log("========>", redisData);
 
         if (redisData === null) {
             console.log("set redis");
 
             const data = await FindOne({ where: { id: req.query.id as string }, includes: { product: true, cart: true } })
             redis.set(`userId:${req.query.id}`, JSON.stringify(data))
-            return res.status(200).json({ message: "lol", data: data })
+            return res.status(200).json({ message: "data....", data: data })
         }
         return res.status(200).json({
             success: true,
-            message: "fetched successfully",
+            message: " data fetched successfully....",
             data: JSON.parse(redisData)
         })
     } catch (error) {
@@ -36,7 +37,7 @@ export const getAllUser = asyncMiddleware(async (req: Request, res: Response, _n
     try {
 
         // Check if the authenticated user is an admin
-        if (req.body.role !== "ADMIN") {
+        if (req.role !== "ADMIN") {
             return res.status(403).json({ success: false, message: 'Forbidden - Admin access required', data: [] });
         }
 
@@ -71,15 +72,15 @@ export const signup = asyncMiddleware(async (req: Request, res: Response, _next:
     // Check if the email is already registered
     const existingUser = await FindOne({ where: { email } });
     if (existingUser) {
-        return res.status(400).json({ error: "Email already in use" });
+        return res.status(400).json({ error: "Email already exist please use another email.." });
     } else {
         try {
             const salt = bcrypt.genSaltSync(10)
             const passwordHash = bcrypt.hashSync(password, salt)
-            const otp = generateOTP();
-            console.log("otp==>", otp);
-            const sendEmail = await sendOTPByEmail(email, otp)
-            console.log("sendEmail", sendEmail);
+            // const otp = generateOTP();
+            // console.log("otp==>", otp);
+            // const sendEmail = await sendOTPByEmail(email, otp)
+            // console.log("sendEmail", sendEmail);
 
             const data = await Create({ ...req.body, password: passwordHash });
             const token = generateToken(data.id);

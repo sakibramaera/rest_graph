@@ -8,15 +8,11 @@ type Query {
 type Token {
       token: String
     }
-type Product {
-  id: ID!,
-  name: String!
-}
+# type Product {
+#   id: ID!,
+#   name: String!
+# }
 
-type Cart {
-  id: ID!,
-  name: String!
-}
 type User {
       id: ID!
       email: String!
@@ -34,21 +30,21 @@ type User {
   }
 
  
-input UserInput {
+input createUserRequest {
     email: String!,
     userName: String!,
     fullName: String!, 
     password: String!,
-    role:Role
+    role:Role,
   }
 
-  type CreateResponse {
+  type CreateUserResponse {
     token: String!
     data: User!
   }
 
 type Mutation {
-      create(body: UserInput): CreateResponse!
+      createUser(body: createUserRequest): CreateUserResponse!
       login(email: String!, password: String!): Token!
   }
 

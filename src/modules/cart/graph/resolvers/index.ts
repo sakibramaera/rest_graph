@@ -1,11 +1,12 @@
 import { GraphQLError, GraphQLResolveInfo } from "graphql"
 import { FindOne, FindMany, Create } from "../../repositories"
-import { comparePassword, generateToken } from "../../../../utils";
-import bcrypt from "bcryptjs";
+import { prisma } from "../../../../config"
 
 
 
-export const authResolver = {
+
+
+export const cartResolver = {
     Query: {
         carts: (_: any, __: any, { role, userId }: any, info: GraphQLResolveInfo) => {
             // Check if the authenticated user is an admin
@@ -16,16 +17,20 @@ export const authResolver = {
             }
 
         },
-        userById: (_: any, args: any, __: any, info: GraphQLResolveInfo) => {
+        cartById: (_: any, args: any, __: any, info: GraphQLResolveInfo) => {
             return FindOne({ where: { id: args.id }, info })
         }
 
     },
     Mutation: {
-        create: async (_: any, args: any, __: any, ___: any) => {
-            return await Create({
-                ...args.body
-            });
+        createCart: async (_: any, args: any, { userId }: any, ___: any) => {
+
+            return {
+                data: await Create({
+                    ...args.body,
+                    userId: userId
+                })
+            }
         },
 
     }

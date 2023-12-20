@@ -6,6 +6,6 @@ const router = express.Router()
 
 router.get("/one", getProductById)
 router.get("/all", authRestMiddleware, getAllProduct)
-router.post("/signup", createProduct)
+router.post("/create", authRestMiddleware, createProduct)
 
 export default router

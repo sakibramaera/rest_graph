@@ -43,6 +43,7 @@ export const authResolver = {
     Query: {
         users: (_: any, __: any, { role }: any, info: GraphQLResolveInfo) => {
             // Check if the authenticated user is an admin
+
             if (role !== "ADMIN") {
                 throw new GraphQLError('Forbidden - Admin access required', {
                     extensions: {
@@ -59,7 +60,7 @@ export const authResolver = {
 
     },
     Mutation: {
-        create: async (_: any, args: any, __: any, ___: any) => {
+        createUser: async (_: any, args: any, __: any, ___: any) => {
             const { email, password } = args.body
             try {
                 const existingUser = await FindOne({ where: { email } });

@@ -1,46 +1,41 @@
 
-export const authTypeDefs = `#graphql
+export const productTypeDefs = `#graphql
 type Query {
     products: [Product!]!
     productById(id: ID!): Product!
 }
 
-type Cart {
-  id: ID!,
-  name: String!
-}
 type Product {
       id: ID!
       name: String!
       price: String!
       quantity: String!
-      role: Role!
+      userId:ID
+      role: Role
       carts: [Cart]
       createdAt: String
       updatedAt: String
   }
  
-input ProductInput {
+input createProductRequest {
     name: String!,
     price: String!,
     quantity: String!,
     
   }
 
-  type CreateResponse {
-    token: String!
-    data: Product!
+type CreateProductResponse {
+    data: Product
   }
 
 type Mutation {
-      create(body: ProductInput): CreateResponse!
+      createProduct(body: createProductRequest): CreateProductResponse!
   }
 
   enum Role {
     USER
     ADMIN
   }
-
 `
 
 

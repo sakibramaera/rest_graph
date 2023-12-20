@@ -6,7 +6,7 @@ const router = express.Router()
 
 router.get("/one", getUserById)
 router.get("/all", authRestMiddleware, getAllUser)
-router.post("/createCart", createCart)
+router.post("/create", authRestMiddleware, createCart)
 
 
 export default router
